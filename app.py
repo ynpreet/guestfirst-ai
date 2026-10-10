@@ -176,12 +176,65 @@ def _gf_unclear_response(text):
     return {"output": out.getvalue(),
             "decision": {"kind": "clarify", "text": text}}
 
+_GF_THREATS = (
+    "lawsuit", "lawyer", "attorney", "suing",
+    "health department", "call the cops", "calling the cops", "police",
+    "shut you down", "shut this place down", "burn this place",
+    "i'll hurt", "i will hurt", "kill you", "kill u", "threaten",
+)
+# "sue" needs word boundaries ("tissue" is not a threat).
+_GF_THREAT_RE = re.compile(r"\bsue\b")
+_GF_SELFHARM = ("kill myself", "end my life", "end it all", "self-harm",
+                "hurt myself", "suicide")
+
+
+def _gf_threat_response(text, selfharm=False):
+    """Threats and self-harm get de-escalation + a human, never a coupon.
+
+    The agent does not negotiate with threats and does not run the recovery
+    playbook on them -- it takes them seriously and hands to a human now.
+    """
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        print("=" * 70)
+        print("GUEST FEEDBACK -- flagged for immediate human handling")
+        print("=" * 70)
+        print('You said: "%s"' % text)
+        print()
+        if selfharm:
+            print("[ORCHESTRATOR] Thinking: this mentions self-harm. No recovery")
+            print("playbook applies here -- this is a person who may need help,")
+            print("not a customer-service case.")
+            print()
+            print("If you or someone you know is struggling: call or text 988")
+            print("(US Suicide and Crisis Lifeline), available 24/7. A human")
+            print("manager has also been notified and will reach out personally.")
+        else:
+            print("[ORCHESTRATOR] Thinking: this reads as a threat, not a service")
+            print("complaint. Offering a coupon here would be insulting and wrong.")
+            print("Threats go straight to a human manager -- no automation, no")
+            print("negotiation, no playbook.")
+            print()
+            print("What happens next:")
+            print("  - A human manager is notified RIGHT NOW with your full message.")
+            print("  - They will contact you personally within the hour.")
+            print("  - Nothing is auto-resolved, auto-discounted, or auto-closed.")
+        print()
+        print("Case status: ESCALATED TO HUMAN -- the agent steps back here.")
+    return {"output": out.getvalue(), "decision": None}
+
+
 def _gf_start(params):
     text = (params.get("text") or "").strip()
     if not text:
         return {"output": "Type your complaint above first -- the agent needs something to investigate.",
                 "decision": None}
     text = text[:500]
+    t = text.lower()
+    if any(k in t for k in _GF_SELFHARM):
+        return _gf_threat_response(text, selfharm=True)
+    if _GF_THREAT_RE.search(t) or any(k in t for k in _GF_THREATS):
+        return _gf_threat_response(text)
     intent, cat, hits = _gf_intent(text)
     if intent == "praise":
         return _gf_praise_response(text)
@@ -332,7 +385,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         except (TypeError, ValueError):
             length = 0
         raw = self.rfile.read(length) if length else b"{}"
-        return json.loads(raw.decode("utf-8") or "{}")
+        try:
+            return json.loads(raw.decode("utf-8") or "{}")
+        except Exception:
+            return {}
 
     def _serve_asset(self, path):
         safe = (HERE / path.lstrip("/")).resolve()

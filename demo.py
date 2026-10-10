@@ -131,6 +131,11 @@ def build_world():
         "App said ready at 12:40. It's 1:05 and nothing.",
         "My lunch break is over and my food isn't ready.",
         "Longest wait I've had here. What's going on today?",
+        "Been standing here 20 minutes watching other people get their food.",
+        "Ordered ahead and STILL waiting longer than the walk-ins.",
+        "Two kids, one lunch hour, zero food so far.",
+        "The wait time on the app keeps jumping. Just tell me honestly.",
+        "I come here every Friday. Today is not it.",
     ]
     complaints, cid = [], 1
     for o in sorted(orders, key=lambda x: (x["placed_min"], x["id"])):
@@ -149,13 +154,34 @@ def build_world():
     surge_orders = [o for o in orders if o["bucket"] in ("12:30", "12:45", "13:00")
                     and o["station"] in ("GRILL", "ASSEMBLE")]
     other_orders = [o for o in orders if o not in surge_orders]
-    missing_pool = rng.sample(surge_orders, 6)
-    incorrect_pool = rng.sample(other_orders, 4)
-    delivery_pool = rng.sample([o for o in other_orders if o not in incorrect_pool], 2)
+    missing_pool = rng.sample(surge_orders, 8)
+    incorrect_pool = rng.sample(other_orders, 6)
+    delivery_pool = rng.sample([o for o in other_orders if o not in incorrect_pool], 4)
+    missing_texts = [
+        "Fries missing from the bag. Second time this month.",
+        "No drink in the bag, and I paid for a combo.",
+        "Ordered two burgers, only one in the bag.",
+        "Dipping sauces missing again.",
+    ]
+    incorrect_texts = [
+        "Got the chicken sandwich instead of the veggie one.",
+        "Asked for no onions. This is ALL onions.",
+        "This isn't what I ordered at all.",
+        "Got someone else's entire order.",
+    ]
+    delivery_texts = [
+        "Delivery arrived 40 minutes late, food was cold.",
+        "Driver went to the wrong address, then blamed me.",
+        "Order arrived spilled everywhere. Unusable.",
+        "Said delivered. Nothing at my door.",
+    ]
     other_specs = (
-        [("missing_items", o, "Fries missing from the bag. Second time this month.") for o in missing_pool]
-        + [("incorrect_orders", o, "Got the chicken sandwich instead of the veggie one.") for o in incorrect_pool]
-        + [("delivery_delay", o, "Delivery arrived 40 minutes late, food was cold.") for o in delivery_pool]
+        [("missing_items", o, missing_texts[i % len(missing_texts)])
+         for i, o in enumerate(missing_pool)]
+        + [("incorrect_orders", o, incorrect_texts[i % len(incorrect_texts)])
+           for i, o in enumerate(incorrect_pool)]
+        + [("delivery_delay", o, delivery_texts[i % len(delivery_texts)])
+           for i, o in enumerate(delivery_pool)]
     )
     for cat, o, text in other_specs:
         complaints.append({
