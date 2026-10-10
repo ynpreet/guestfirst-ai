@@ -1,0 +1,4 @@
+# GuestFirst AI -- Demo 8 of 8, Agentic AI Workshop
+#
+# This demo uses ONLY the Python standard library. Nothing to install.
+# (This file exists so the workshop folder layout matches the other demos.)
