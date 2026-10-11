@@ -96,6 +96,9 @@ def _fmt_clock(mins):
 # Synthetic data: today's orders, pickup records, complaints.
 # --------------------------------------------------------------------------
 def build_world():
+    # Re-seed every call so the interactive web UI (which shares this process)
+    # rebuilds the same world on every request: same input -> same output.
+    rng.seed(SEED)
     waits_today = {
         s: simulate_station(TODAY_COUNTS, TODAY_MIX[s], CAPACITY[s], BASE_PREP[s])[0]
         for s in STATIONS
@@ -529,8 +532,8 @@ def run_demo():
     say("  CAUSATION verdicts (mechanism + evidence, not just r):")
     say("   1. ORDER-MIX SHIFT + VOLUME SURGE -> SUPPORTED.")
     say("      Grill share 35% -> 52% AND +40% volume. Grill arrivals exceeded")
-    say("      grill capacity for 45 straight minutes (%s); backlog peaked at"
-        % ", ".join(hyp["overload_buckets"]))
+    say("      grill capacity for %d straight minutes (%s); backlog peaked at"
+        % (len(hyp["overload_buckets"]) * 15, ", ".join(hyp["overload_buckets"])))
     say("      %.1f orders waiting on one queue. The queue model reproduces the" % hyp["grill_peak_backlog"])
     say("      observed waits -- mechanism confirmed.")
     say("   2. UNDERSTAFFING -> NOT SUPPORTED. Staffing never varied today and")
