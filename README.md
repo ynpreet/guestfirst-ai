@@ -55,7 +55,7 @@ causation explicitly separate. The punchline: naive correlation of grill
 volume vs waits is **r = −0.43** (wrong sign!) because queues *lag*
 arrivals; with a 30-minute lag it flips to **r = +0.50**. Correlation is
 fragile here — so the agent tests the *mechanism*: grill arrivals exceeded
-grill capacity for 45 straight minutes, backlog peaked at 18.5 orders.
+grill capacity for 60 straight minutes, backlog peaked at 18.5 orders.
 Causation: **supported by mechanism, not by r.** Staffing is explicitly
 *not* blamed (it never varied; a constant can't explain a change).
 Inventory is ruled out (zero stockouts). And when the fryer goes offline
@@ -199,7 +199,7 @@ the root cause, and the numbers can't disagree with each other.
   → investigate operational records → propose explanations with
   correlation and causation **explicitly separated**. The demo's signature
   moment: naive correlation has the *wrong sign* (r = −0.43) because queues
-  lag arrivals; the causal claim rests on mechanism (45 minutes of
+  lag arrivals; the causal claim rests on mechanism (60 minutes of
   arrivals > capacity, backlog curve tracking waits), never on r alone.
   Staffing is not blamed without evidence. Intervention effects are
   estimated via the same historical/simulation model before anything is
